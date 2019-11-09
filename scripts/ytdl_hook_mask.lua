@@ -24,10 +24,10 @@ local options = require 'mp.options'
 
 local o = {
     -- space separated patterns (only partial match with url is enough)
-    masks = "ytdl:// https?://www.youtube.com/ https?://youtu.be/",
+    masks = "ytdl:// https?://www.youtube.com/ https?://youtu.be/ https?://www.bitchute.com/ https?://invidio.us/ https?://hooktube.com/",
     exclude = "",
     try_ytdl_first = true,
-    use_manifests = false
+    use_manifests = true
 }
 
 options.read_options(o)
@@ -161,7 +161,7 @@ local function is_blacklisted(url)
         url = url:match('https?://(.+)')
         for _, exclude in ipairs(ytdl.blacklisted) do
             if url:match(exclude) then
-                msg.verbose('URL matches excluded substring. Skipping.')
+                msg.debug('URL matches excluded substring. Skipping.')
                 return true
             end
         end
@@ -366,9 +366,18 @@ local function add_single_video(json)
 
     msg.debug("streamurl: " .. streamurl)
 
+    local uploader = ''
+    local extractor = ''
+    if json['extractor'] then
+        extractor = ' @' .. json['extractor']
+    end
+    if json['uploader'] then
+        uploader = '[' .. json['uploader'] .. ']: '
+    end
+
     mp.set_property("stream-open-filename", streamurl:gsub("^data:", "data://", 1))
 
-    mp.set_property("file-local-options/force-media-title", json.title)
+    mp.set_property("file-local-options/force-media-title", uploader .. json.title .. extractor)
 
     -- set hls-bitrate for dash track selection
     if max_bitrate > 0 and
@@ -380,7 +389,7 @@ local function add_single_video(json)
     -- add subtitles
     if not (json.requested_subtitles == nil) then
         for lang, sub_info in pairs(json.requested_subtitles) do
-            msg.verbose("adding subtitle ["..lang.."]")
+            msg.info("adding subtitle ["..lang.."]")
 
             local sub = nil
 
