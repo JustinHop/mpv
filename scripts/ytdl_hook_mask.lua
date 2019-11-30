@@ -24,7 +24,7 @@ local options = require 'mp.options'
 
 local o = {
     -- space separated patterns (only partial match with url is enough)
-    masks = "ytdl:// https?://www.youtube.com/ https?://youtu.be/ https?://www.bitchute.com/ https?://invidio.us/ https?://hooktube.com/",
+    masks = "ytdl:// https?://www.youtube.com/ https?://youtu.be/ https?://www.bitchute.com/ https?://invidio.us/ https?://hooktube.com/ https?//",
     exclude = "",
     try_ytdl_first = true,
     use_manifests = true
@@ -377,7 +377,10 @@ local function add_single_video(json)
 
     mp.set_property("stream-open-filename", streamurl:gsub("^data:", "data://", 1))
 
-    mp.set_property("file-local-options/force-media-title", uploader .. json.title .. extractor)
+    local title =  uploader .. json.title .. extractor
+    title = string.gsub(title, "%%", "")
+
+    mp.set_property("file-local-options/force-media-title", title)
 
     -- set hls-bitrate for dash track selection
     if max_bitrate > 0 and
